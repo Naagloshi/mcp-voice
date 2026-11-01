@@ -1,0 +1,276 @@
+# mcp-voice – vzor konfigurace
+#
+# Zkopíruj do ~/.config/mcp-voice/config.yaml (jiná cesta: env MCP_VOICE_CONFIG, stejná pro server i hooky).
+# Chybějící soubor i prázdný soubor = výchozí hodnoty. Tajemství sem nepatří (keyring, viz README).
+#
+# Aktivní jsou jen klíče, které si většinou nastavíš. Zakomentované klíče ukazují výchozí hodnotu
+# (u několika je místo ní příklad, je to u nich napsané); odkomentuj jen ty, které měníš.
+# Rozsah „a–b“ je včetně krajů. Úplný přehled klíčů, pevných limitů a pravidel validace je v README,
+# sekce Konfigurace.
+#
+# Validace je přísná: neznámý klíč (v kořeni i v každé podsekci), duplicitní klíč, merge klíč YAML `<<`,
+# špatný typ nebo hodnota mimo rozsah je chyba. Chyba v telegram.prijem vypne jen příjem z Telegramu,
+# chyba jinde zneplatní celou konfiguraci (server nenastartuje, strážce hlas zamítá).
+# Server konfiguraci čte jen při startu (změna = restart serveru).
+
+elevenlabs:
+  # Model TTS, když ho volání rekni nezadá; musí být v modely_povolene. Tvar [a-z0-9_]{3,64}.
+  # model: eleven_flash_v2_5
+  # Modely, které smí rekni použít (parametr model mimo seznam = MODEL_NOT_ALLOWED).
+  # modely_povolene: [eleven_flash_v2_5, eleven_multilingual_v2, eleven_v4]
+  # Modely, kterým se posílá language_code (hodnota elevenlabs.jazyk); ostatní jazyk určí samy.
+  # modely_s_jazykem: [eleven_flash_v2_5]
+  # Výchozí hlas: alias z hlasy (tvar [a-z0-9][a-z0-9_-]{0,31}). Alias, který v hlasy chybí, validace
+  # nezachytí, rekni pak vrátí VOICE_UNKNOWN.
+  hlas: vychozi
+  # Alias -> voice_id (16–40 znaků A-Za-z0-9, z webu ElevenLabs). Výchozí prázdné: bez něj rekni nefunguje.
+  # Odkomentuj řádek s aliasem a zástupnou hodnotu nahraď svým voice_id (zástupná hodnota validací neprojde).
+  hlasy:
+    # vychozi: "SEM_VOICE_ID_Z_ELEVENLABS"
+  # true = parametr hlas smí být i surové voice_id mimo hlasy. Výchozí false: model smí jen aliasy.
+  # povolit_voice_id: false
+  # Kód jazyka pro language_code, 2–3 malá písmena.
+  # jazyk: cs
+  # Timeout HTTP požadavku TTS v sekundách, 1–300.
+  # timeout_s: 30
+  # Parametry hlasu poslané do API beze změny (mapa jméno -> číslo; true/false nejde). Výchozí prázdné
+  # = nastavení hlasu v účtu. Příklad:
+  # voice_settings: {stability: 0.5, similarity_boost: 0.75, speed: 1.0}
+  # KONTROLNÍ BOD: nastav true až po vypnutí „Data use“ v účtu ElevenLabs (Terms and Privacy).
+  # Do té doby server do ElevenLabs nic nepošle (rekni i cloudový přepis vrátí DATA_USE_NOT_CONFIRMED).
+  data_use_vypnuto: false
+  # Po úspěšném rekni jeden dotaz na zůstatek kreditů do status.json (status bar, nástroj stav).
+  # Klíč potřebuje oprávnění „User: Access“ (jen čtení účtu); bez něj kredity zůstanou prázdné.
+  # kredity: true
+  # Po TTS smazat položku, kterou TTS vytvořil v historii účtu (ElevenLabs tam ukládá text i audio).
+  # Klíč potřebuje „History: Write“: tím smí číst i mazat celou historii účtu,
+  # server ale maže jen své položky.
+  # Bez oprávnění rekni funguje dál, položky zůstanou v historii.
+  # mazat_historii: true
+
+telegram:
+  # Id soukromého chatu s botem (číslo, i se znaménkem, nejvýš 20 číslic). Prázdné = Telegram vypnutý
+  # (TELEGRAM_NOT_CONFIGURED). Patří jen do tvé konfigurace, ne do repozitáře.
+  chat_id: ""
+  # Timeout HTTP volání Telegram API v sekundách, 1–120.
+  # timeout_s: 20
+  # true = zprávy a hlasovky od bota nejde přeposlat ani uložit (protect_content).
+  # protect_content: false
+  # Textové odpovědi nástroje odpovez.
+  # odpovedi:
+  #   max_casti: 3                          # nejvýš tolik zpráv na jednu odpověď, 1–5 (zbytek se zkrátí)
+  #   max_znaku_casti: 4000                 # znaků na zprávu, 100–4096 (4096 je limit Telegramu)
+  # retence:
+  #   smazat_po_h: 24                       # mazat zprávy v chatu po tolika hodinách, 0–47; 0 = nemazat
+  #
+  # Příjem zpráv a hlasovek z Telegramu do běžící session (README, sekce Příjem z Telegramu).
+  # Chyba v této sekci příjem vypne (důvod ukáže nástroj stav a povel okna), ostatní funkce běží dál.
+  prijem:
+    # Hlavní vypínač. true vyžaduje telegram.chat_id a povolene_user_id, chat_id musí být mezi nimi.
+    povoleno: false
+    # Tvoje Telegram user_id, 0–5 celých čísel > 0. Po každé změně znovu potvrď allowlist (README).
+    povolene_user_id: []
+    # Jméno, pod kterým je server registrovaný v Claude Code (nástroje mcp__<registrace>__*),
+    # tvar [A-Za-z0-9_-]{1,64}. Musí sedět s `claude mcp add … <jméno>`.
+    # registrace: hlas
+    # Slash příkaz okna, tvar /[a-z][a-z0-9_-]{1,31}. Hook ho čte při každém promptu, server při startu:
+    # po změně restartuj server, jinak start skončí povel_nesouhlasi.
+    # povel: "/telegram"
+    # Long poll getUpdates v sekundách, 10–50.
+    # long_poll_s: 50
+    # okno:
+    #   vychozi_min: 60                       # délka okna bez ČAS v povelu, 5–240 a nejvýš max_min
+    #   max_min: 240                          # strop délky okna, 5–240 (240 min = pevný strop v kódu)
+    #   necinnost_min: 60                     # zavřít po tolika min bez zprávy z Telegramu, 5–240, ≤ max_min
+    #   vychozi_rezim: prace                  # režim bez REŽIM v povelu: cteni | prace | plny
+    # rezimy:
+    #   cteni:
+    #     # Přesná jména nástrojů (bez globů), které smí tah z Telegramu volat jako čtení (bez dotazu)
+    #     # ve všech režimech, např. mcp__notes__search; nejvýš 100. Tvrdě zakázané nástroje nejdou.
+    #     nastroje_navic: []
+    #     # Adresáře (~/… nebo absolutní, ne / ani ~), na které se omezí Read, Grep a Glob. Prázdné
+    #     # = bez omezení (chráněné cesty platí vždy). Mimo kořeny: v cteni zamítnuto, jinde dotaz.
+    #     koreny: []
+    #   prace:
+    #     # Co s dialogem oprávnění v tahu z Telegramu (platí pro prace i plny): cekat = dialog čeká
+    #     # na potvrzení v terminálu nebo Remote Control | odmitnout. Session bez RC má vždy odmitnout.
+    #     pri_dotazu: cekat
+    #     # Adresáře navíc k cwd viditelné pro Bash v obalu bwrap (jen v prace), seznam map
+    #     # {cesta: ~/…|/…, pristup: rw|ro}; ne domov, chráněná cesta, /dev, /proc, /sys, /run, /boot, /tmp.
+    #     bash_koreny: []
+    #   plny:
+    #     # Izolace Bash v tahu z Telegramu (platí pro prace i plny): bwrap | zadna. Bez bwrap se Bash
+    #     # vždy ptá a chráněné cesty hlídá jen textová kontrola.
+    #     bash_izolace: bwrap
+    #     # true = Bash v bwrap se sítí (prace i plny). Vědomé riziko: abstraktní sockety X11 a D-Bus.
+    #     bash_sit: false
+    #     # true = Bash v bwrap v režimu plny bez dotazu (jen s ověřenou verzí Claude Code). Zapni, jen
+    #     # když žádný jiný hook PreToolUse nevrací pro Bash allow/ask (zahodil by obal, viz README).
+    #     bash_bez_dotazu: false
+    #     # Složky nástrojů z domova, v obalu jen pro čtení (domov je jinak skrytý); prace i plny.
+    #     bash_domov:
+    #       pridat: []                          # ~/… bez tajemství, např. ~/go/pkg; ne chráněná cesta
+    #       odebrat_vychozi: []                 # přesné položky výchozího seznamu (~/.local/bin, ~/.nvm …)
+    #     # Další absolutní cesty skryté v obalu navíc k výchozím (/mnt, /media, /srv, /home, /net,
+    #     # /nfs, /afs); výchozí nejdou odebrat.
+    #     bash_skryt: []
+    #     # Jako rezimy.prace.bash_koreny, jen pro režim plny.
+    #     bash_koreny: []
+    # Chráněné cesty: čtení i zápis zamítnut ve všech režimech. Výchozí seznam je v kódu (README).
+    # chranene_cesty:
+    #   pridat: []                            # ~/…, absolutní cesta, nebo vzor jména bez / (*.sqlite)
+    #   odebrat_vychozi: []                   # jen přesné položky výchozího seznamu (vědomé oslabení)
+    # Chráněný zápis: jen zápis (AGENTS.md, .vscode/, git hooky, ~/.bashrc …), stejný tvar položek.
+    # chranene_zapis:
+    #   pridat: []
+    #   odebrat_vychozi: []
+    # Konfigurace agenta: zápis tvrdě zakázaný (.claude/, CLAUDE.md, CLAUDE.local.md, .mcp.json),
+    # výchozí položky nejde odebrat. Přidat jde jméno nebo vzor jména bez /, např. COPILOT.md.
+    # konfigurace_agenta:
+    #   pridat: []
+    # Další nástroje tvrdě zakázané v tahu z Telegramu (přesná jména navíc k vestavěným zákazům).
+    # zakazane_nastroje:
+    #   pridat: []
+    # Tokeny zprávy (na začátku nebo po mezeře), které se nahradí značkou [zakázaný příkaz].
+    # Glob masky 1–64 znaků bez mezer, * a ? nepřekročí /. Výchozí "/[!/]*" = slash příkazy.
+    # zakazane_prikazy:
+    #   pridat: []
+    #   odebrat_vychozi: []                   # ["/[!/]*"] = bez filtru příkazů
+    # true = tahy /loop a cron mají v otevřeném okně jen čtení; false = jako tah člověka.
+    # omezit_naplanovane: true
+    # Bash v žádném tahu nesmí zmínit socket session ani konfiguraci a stav mcp-voice. false pojistku
+    # vypne pro všechny session se stejným cesty.stav (jen pro ladění).
+    # pojistka_bash: true
+    # true = okno se otevře i na verzi Claude Code, na které formát socketu a transkriptu nebyl ověřen.
+    # povolit_neoverenou_verzi: false
+    # vstup:
+    #   max_znaku: 4000                       # delší zpráva se odmítne, 1–4096
+    #   zprav_za_minutu: 6                    # 1–30; druhé překročení limitu okno zavře
+    #   zprav_za_okno: 100                    # 1–1000
+    #   hlasovka_max_s: 300                   # 1 až min(stt.max_s, 3600); výchozí min(300, stt.max_s)
+    #   hlasovka_max_mb: 5                    # 1–20
+    #   dekodovani_izolace: auto              # dekódování hlasovky: auto (bwrap, když funguje) | bwrap
+    #                                         # (povinně, jinak se hlasovky odmítnou) | zadna
+    # fronta:
+    #   max_zprav: 10                         # zpráv čekajících na volnou session, 1–50; další se odmítne
+    #   oznamit_po_s: 120                     # po tolika sekundách čekání oznámit do Telegramu, 10–3600
+    #   necinnost_tahu_s: 90                  # session bez změny transkriptu tak dlouho je volná, 15–600
+    #   max_cekani_min: 15                    # pak se zpráva doručí i do zaneprázdněné session, 1–120
+    # doruceni:
+    #   potvrzeni_s: 10                       # čekání na potvrzení doručení v transkriptu, 2–60
+    # Fráze, které ve zprávě určí formu odpovědi (vyhrává poslední výskyt). 0–50 frází na seznam,
+    # 2–40 znaků; po normalizaci (malá písmena, bez diakritiky) se nesmí opakovat napříč seznamy.
+    # forma:
+    #   hlas: ["řekni", "řekni mi", "hlasem", "nahlas", "přečti mi"]
+    #   text: ["pošli textem", "odpověz textem", "napiš to"]
+    #   pc: ["odpověz na pc", "řekni to na pc"]
+    # true = šablona „odpověď jen v terminálu“ uvede do Telegramu název citlivého kontextu.
+    # oznamit_nazev_kontextu: false
+    # Jazyk pevných šablon do Telegramu a textů hooku: cs | en.
+    # jazyk_sablon: cs
+
+cil:
+  # Remote Control a neznámý zdroj: tolik sekund bez vstupu = uživatel není u PC, 5–86400.
+  # prah_necinnosti_s: 60
+  # Zpráva z terminálu, PC odemčené, ale tak dlouho bez vstupu = mluvit do Telegramu, 5–86400.
+  # prah_dlouhe_necinnosti_s: 600
+  # Snímek stavu PC z hooku platí ke zprávě, je-li od ní nejvýš tolik sekund, 0–120.
+  # tolerance_snimku_s: 5
+  # WM_CLASS oken klienta Claude (aktivní okno při promptu z RC = uživatel je u PC), [A-Za-z0-9._-]{1,128}.
+  # okna_klienta: [com.anthropic.claude]
+  # cil="pc" při zamčeném nebo neznámém stavu PC: odmitnout (PC_LOCKED / PC_STATE_UNKNOWN) | hrat.
+  # pc_pri_zamceni: odmitnout
+  # Detekce zámku a nečinnosti: auto | cinnamon | gnome | x11.
+  # desktop: auto
+  # Tiché hodiny [od, do] (celé hodiny 0–23, od ≠ do, může přes půlnoc): auto pak místo PC mluví
+  # do Telegramu. Výchozí žádné. Příklad:
+  # tiche_hodiny: [22, 7]
+
+prehravani:
+  # Přehrávač na PC: paplay | pw-cat.
+  # prikaz: paplay
+
+limity:
+  # Nejdelší text pro jedno rekni (znaky), 1–5000; delší = TEXT_TOO_LONG.
+  # max_znaku: 1500
+  # Denní rozpočet znaků TTS (počítá se před odesláním), 0–10000000; 0 = TTS zablokované.
+  # ElevenLabs Free má 10 000 znaků měsíčně.
+  znaku_za_den: 500
+  # Nejvýš tolik rekni za minutu, 1–600 (brzda smyček).
+  # volani_za_minutu: 6
+  # Stejný text znovu do tolika sekund = DUPLICATE, 0–86400.
+  # duplicita_s: 60
+
+stt:
+  # Výchozí přepis je vždy lokální, cloud jen parametrem engine="cloud". false cloud zakáže
+  # (CLOUD_DISABLED). Klíč stt.engine neexistuje záměrně, jeho uvedení je chyba.
+  # cloud_povolen: true
+  # Adresář modelu faster-whisper (stahuje mcp-voice-model stahni).
+  # model_cesta: ~/.local/share/mcp-voice/modely/faster-whisper-large-v3-turbo
+  # cuda | cpu (cuda při selhání zkusí cpu s int8).
+  # zarizeni: cuda
+  # int8_float16 | float16 | int8 | float32 | int8_float32.
+  # compute_type: int8_float16
+  # Jazyk přepisu hlasovek z Telegramu, 2–3 malá písmena, null = autodetekce.
+  # Nástroj prepis má vlastní parametr jazyk (výchozí cs).
+  # jazyk: cs
+  # Slova, která má přepis upřednostnit (např. vlastní jména), nejvýš 300 znaků.
+  # hotwords: ""
+  # Úvodní kontext pro přepis, nejvýš 500 znaků.
+  # initial_prompt: ""
+  # Jen z těchto adresářů smí prepis číst (absolutní nebo ~/…; relativní položka se tiše vynechá).
+  # povolene_adresare: ["~/.claude/uploads"]
+  # Největší soubor v MB, 0.01–200.
+  # max_mb: 25
+  # Nejdelší audio v sekundách, 1–7200 (shora omezuje i telegram.prijem.vstup.hlasovka_max_s).
+  # max_s: 600
+  # Uvolnit model z paměti po tolika sekundách nečinnosti, 0–86400; 0 = držet napořád.
+  # uvolnit_po_s: 600
+  # Timeout jednoho přepisu (lokálního i cloudového) v sekundách, 5–3600.
+  # timeout_s: 120
+
+cesty:
+  # Stavový adresář (razítka strážce, okno příjmu, status.json). Absolutní nebo ~/…; server, všechny
+  # hooky (i hook rozsahu přes --stav) a mcp-voice-status musí používat stejný.
+  # stav: ~/.local/state/mcp-voice
+  # Kam rekni ukládá MP3 (ulozit, cil="soubor").
+  # vystup_adresar: ~/.local/share/mcp-voice/vystup
+
+strazce:
+  # true = rekni, prepis a odpovez nic nepošlou bez razítka hooku PreToolUse (GUARD_MISSING).
+  # false jen pro klienty bez hooků: server pak pustí volání i bez hooku (jiný klient, pád hooku).
+  # vyzadovat: true
+  # Nejvyšší stáří razítka v sekundách, 5–3600.
+  # max_stari_s: 600
+  # Následující klíče čte hook mcp-voice-guard při každém volání (změna platí hned, bez restartu).
+  # Cloudový přepis: dotaz (ptát se při každém volání) | povolit (posoudit jako rekni).
+  # prepis_cloud: dotaz
+  # Citlivé kontexty, nejvýš 20; výchozí žádné (hook jen razítkuje). Příklad (README, Citlivé kontexty):
+  # citlive_kontexty:
+  #   - nazev: ACME                         # 1–40 znaků (písmena, číslice, mezera, . _ -), unikátní
+  #     upozorneni: "Session pracuje s daty ACME. Data odejdou mimo (ElevenLabs, Telegram)."
+  #     platnost: den                       # platnost souhlasu: den | session | volani
+  #     telegram: souhlas                   # souhlas | nikdy (do Telegramu nikdy, ani se souhlasem)
+  #     telegram_platnost: kontext          # kontext | okno (souhlas jen do konce okna, ve kterém byl dán)
+  #     telegram_dotaz_v_tahu: rc           # rc (dialog čeká na terminál nebo RC) | odmitnout
+  #     signaly:                            # aspoň jeden signál; každý seznam nejvýš 100 položek
+  #       mcp: ["acme-db", "acme-*"]        # jméno MCP serveru (glob): nástroje mcp__<server>__*
+  #       agenti: ["mail-assistant"]        # subagent_type spuštěného subagenta (glob)
+  #       skilly: ["acme"]                  # skill přes nástroj Skill nebo slash příkaz /acme (glob)
+  #       cesty: ["~/work/acme"]            # cwd, cesty ve vstupech nástrojů, zmínka v Bash a zadání
+  #       texty: [".agents/skills/acme/"]   # podřetězec v příkazu Bash nebo v zadání subagenta (3–200 znaků)
+  #       vstupy:                           # pole vstupu nástroje: přesná hodnota nebo předpona
+  #         - nastroj: "mcp__notes__*"
+  #           pole: area
+  #           hodnoty: [acme]
+  #         - nastroj: "mcp__notes__*"
+  #           pole: [path, rel_path]
+  #           predpony: ["acme/"]
+  #   - nazev: Example Corp
+  #     upozorneni: "Session pracuje s daty Example Corp."
+  #     platnost: session
+  #     signaly:
+  #       mcp: ["example-*"]
+
+# Text připojený k instrukcím serveru pro model, nejvýš 2000 znaků.
+# instrukce_navic: ""

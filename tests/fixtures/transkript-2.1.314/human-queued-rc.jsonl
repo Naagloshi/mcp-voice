@@ -1,0 +1,2 @@
+{"type": "system", "timestamp": "2026-10-30T19:33:20Z", "version": "2.1.314", "isSidechain": false, "sessionId": "11111111-2222-4333-8444-555555555555", "subtype": "bridge_status", "url": "https://example.invalid/session"}
+{"type": "user", "timestamp": "2026-10-30T19:33:21Z", "version": "2.1.314", "isSidechain": false, "sessionId": "11111111-2222-4333-8444-555555555555", "origin": {"kind": "human"}, "turnOrigin": "human", "turnPosition": {"promptIndex": 1, "turnIndex": 1}, "message": {"role": "user", "content": "z telefonu"}, "promptSource": "queued"}

@@ -1,0 +1,16 @@
+{
+ "session_id": "11111111-2222-4333-8444-555555555555",
+ "transcript_path": "~/.claude/projects/-p/11111111-2222-4333-8444-555555555555.jsonl",
+ "cwd": "/tmp/projekt",
+ "scratchpad_dir": "/tmp/scratch",
+ "prompt_id": "p-0001",
+ "hook_event_name": "SubagentStop",
+ "agent_id": "a308a0941b3849e8c",
+ "agent_type": "general-purpose",
+ "permission_mode": "auto",
+ "stop_hook_active": false,
+ "agent_transcript_path": "x.jsonl",
+ "background_tasks": [],
+ "session_crons": [],
+ "effort": "medium"
+}

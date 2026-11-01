@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mcp-voice"
+version = "0.1.0"
+description = "Lokální MCP server: hlasová odpověď (ElevenLabs TTS) na PC nebo do Telegramu a přepis hlasovek (faster-whisper, volitelně ElevenLabs Scribe)"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Naagloshi" }]
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.27,<2",
+    "httpx>=0.28,<0.29",
+    "keyring>=25.0,<26",
+    "pyyaml>=6.0.1,<7",
+]
+
+[project.optional-dependencies]
+# Lokální přepis (STT). Knihovny NVIDIA jsou pip wheely (bez systémové CUDA).
+# Verze drž shodné s ostatními projekty na stroji, které je už mají (sdílená cache).
+lokalni = [
+    "faster-whisper==1.2.1",
+    "ctranslate2>=4.5,<5",
+    "numpy>=2.0,<3",
+    "nvidia-cublas-cu12==12.9.2.10",
+    "nvidia-cudnn-cu12==9.23.2.1",
+    "nvidia-cuda-runtime-cu12==12.9.79",
+]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=0.23,<2",
+    "pytest-cov>=5.0,<8",
+    "pip-audit>=2.7,<3",
+    "uv>=0.13,<0.14",
+    # Sestavení (uv pip install --no-build-isolation -e .): build backend z locku, s hashi.
+    # Na hatchling stejná podmínka jako v [build-system] requires (hlídá tests/test_locky.py).
+    "hatchling>=1.27,<2",
+    "editables>=0.3,<1",
+]
+
+[project.scripts]
+mcp-voice = "mcp_voice.server:main"
+mcp-voice-hook = "mcp_voice.hook:main"
+mcp-voice-guard = "mcp_voice.strazce_hook:main"
+mcp-voice-model = "mcp_voice.model:main"
+mcp-voice-status = "mcp_voice.status:main"
+mcp-voice-telegram = "mcp_voice.telegram_cli:main"
+mcp-voice-rozsah = "mcp_voice.rozsah_hook:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_voice"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "--tb=short"
+
+[tool.coverage.run]
+source = ["src/mcp_voice"]
+omit = ["tests/*"]

@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {"hooks": [{"type": "command", "command": "VENV/bin/mcp-voice-hook", "timeout": 5}]}
+    ],
+    "PreToolUse": [
+      {"matcher": ".*", "hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost pre --stav STAV", "timeout": 5, "onFailure": "block"}]},
+      {"matcher": "mcp__hlas__.*", "hooks": [{"type": "command", "command": "VENV/bin/mcp-voice-guard", "timeout": 15, "onFailure": "block"}]}
+    ],
+    "PostToolUse": [
+      {"matcher": ".*", "hooks": [{"type": "command", "command": "VENV/bin/mcp-voice-guard", "timeout": 15}]},
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost post --stav STAV", "timeout": 10}]}
+    ],
+    "PostToolUseFailure": [
+      {"matcher": "Bash", "hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost post --stav STAV", "timeout": 10}]}
+    ],
+    "SubagentStart": [
+      {"hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost subagent-start --stav STAV", "timeout": 5}]}
+    ],
+    "SubagentStop": [
+      {"hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost subagent-stop --stav STAV", "timeout": 5}]}
+    ],
+    "Notification": [
+      {"matcher": "permission_prompt|elicitation_dialog", "hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost notifikace --stav STAV", "timeout": 5}]}
+    ],
+    "Stop": [
+      {"hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost stop --stav STAV", "timeout": 5}]}
+    ],
+    "StopFailure": [
+      {"hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost stop --stav STAV", "timeout": 5}]}
+    ],
+    "SessionStart": [
+      {"matcher": "clear", "hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost clear --stav STAV", "timeout": 5}]}
+    ],
+    "SessionEnd": [
+      {"hooks": [{"type": "command", "command": "/usr/bin/python3 -I PKG/rozsah_hook.py --udalost konec --stav STAV", "timeout": 5}]}
+    ]
+  }
+}

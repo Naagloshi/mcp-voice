@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual env / uv
+.venv*/
+venv/
+.uv/
+
+# Lokální konfigurace (patří do ~/.config/mcp-voice/, sem jen pro jistotu)
+config.yaml
+.env
+.env.*
+
+# Audio a modely
+*.ogg
+*.mp3
+*.wav
+*.opus
+*.m4a
+*.bin
+modely/
+
+# Pytest
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Logy
+*.log
+
+# Tajemství – nikdy do repozitáře
+*.key
+*.pem
